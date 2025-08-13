@@ -1,12 +1,22 @@
+// Di file: tsconfig.json
 {
-	"extends": "@apify/tsconfig",
-	"compilerOptions": {
-		"module": "NodeNext",
-		"moduleResolution": "NodeNext",
-		"target": "ES2022",
-		"outDir": "dist",
-		"noUnusedLocals": false,
-		"lib": ["DOM"]
-	},
-	"include": ["./src/**/*"]
+  "compilerOptions": {
+    // Target & Module System (Kunci Utama)
+    "target": "ES2022", // Menghasilkan JS modern
+    "module": "NodeNext", // Menggunakan sistem modul ES Next untuk Node.js
+    "moduleResolution": "NodeNext", // WAJIB: Algoritma modern untuk mencari modul, ini yang akan menyelesaikan error kita.
+
+    // Aturan Kualitas Kode
+    "strict": true, // Mengaktifkan semua pengecekan ketat
+    "forceConsistentCasingInFileNames": true, // Mencegah bug karena beda huruf besar/kecil di nama file
+
+    // Lainnya
+    "skipLibCheck": true, // Mempercepat build dengan tidak memeriksa library
+    "esModuleInterop": true, // Memudahkan impor dari modul CommonJS
+    "outDir": "dist", // Folder output
+    "rootDir": "src", // Folder input
+    "lib": ["DOM", "ES2022"] // Menambahkan tipe data DOM
+  },
+  "include": ["src/**/*.ts"], // File yang akan di-compile
+  "exclude": ["node_modules"] // Folder yang diabaikan
 }

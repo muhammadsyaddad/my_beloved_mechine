@@ -1,10 +1,11 @@
 // Di file: src/scripts/crawler/crawler.ts
 
 import { PlaywrightCrawler } from "crawlee";
+import type { CheerioAPI } from "cheerio";
 import { ScraperConfig } from "../config.js";
 import { BeasiswaInfo } from "../../lib/constant.js";
 import { extractOfficialLink } from "../Helper/helperCrawler.js";
-import { supabase } from "../../lib/supabaseClient.js"; // <-- IMPORT BARU
+import { supabase } from "../../lib/supabaseClient.js";
 
 export function createBeasiswaCrawler(config: ScraperConfig) {
   return new PlaywrightCrawler({
@@ -27,14 +28,14 @@ export function createBeasiswaCrawler(config: ScraperConfig) {
             $("div[style*='text-align: justify']").first().text().trim(),
           ],
           sumber: config.sourceName,
-          link_pendaftaran: extractOfficialLink($, request.url),
+          link_pendaftaran: extractOfficialLink($ as CheerioAPI, request.url),
           deadline: null,
           persyaratan: [],
           benefit: [],
           kampus: [],
         };
 
-        const specificData = config.extractData($);
+        const specificData = config.extractData($ as CheerioAPI);
         Object.assign(info, specificData);
 
         // Cek jika data esensial ada sebelum menyimpan
@@ -46,11 +47,10 @@ export function createBeasiswaCrawler(config: ScraperConfig) {
 
           // Kita gunakan 'upsert'. Ini akan INSERT jika data baru, atau UPDATE jika URL sudah ada.
           // Ini sangat efisien untuk mencegah duplikat!
-          const { data, error } = await supabase
+          const { data: _, error } = await supabase
             .from("beasiswa") // Nama tabel Anda
             .upsert(
               {
-                // Mapping dari objek 'info' ke kolom tabel Anda
                 url: info.url,
                 judul: info.judul,
                 link_pendaftaran: info.link_pendaftaran,
@@ -60,7 +60,6 @@ export function createBeasiswaCrawler(config: ScraperConfig) {
                 persyaratan: info.persyaratan,
                 benefit: info.benefit,
                 kampus: info.kampus,
-                // 'created_at' & 'judul_deskripsi_fts' akan diurus oleh Postgres
               },
               { onConflict: "url" }, // Jika terjadi konflik pada kolom 'url', lakukan update.
             );

@@ -2,7 +2,7 @@
   "name": "my-crawler",
   "version": "0.0.1",
   "type": "module",
-  "description": "This is an example of a Crawlee project.",
+  "description": "This crawler project for statis website",
   "dependencies": {
     "@supabase/supabase-js": "^2.53.0",
     "crawlee": "^3.0.0",
@@ -11,7 +11,6 @@
   },
   "devDependencies": {
     "@apify/tsconfig": "^0.1.0",
-    "@types/cheerio": "^0.22.35",
     "@types/node": "^22.0.0",
     "tsx": "^4.4.0",
     "typescript": "~5.8.0"
