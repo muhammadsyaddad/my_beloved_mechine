@@ -8,7 +8,7 @@ import { supabase } from "../../lib/supabaseClient.js"; // <-- IMPORT BARU
 
 export function createBeasiswaCrawler(config: ScraperConfig) {
   return new PlaywrightCrawler({
-    maxRequestsPerCrawl: config.maxRequestsPerCrawl ?? 300,
+    maxRequestsPerCrawl: config.maxRequestsPerCrawl ?? 100,
     async requestHandler({ page, parseWithCheerio, request, enqueueLinks }) {
       try {
         console.log(`[${config.sourceName}] 🤖 Mengunjungi: ${request.url}`);

@@ -24,7 +24,7 @@ export const indbeasiswaConfig: ScraperConfig = {
   sourceName: "indbeasiswa",
   url: "https://indbeasiswa.com/beasiswa-unggulan/",
   globs: ["**/beasiswa-*"],
-  maxRequestsPerCrawl: 500,
+  maxRequestsPerCrawl: 100,
   contentSelector: ".entry-content",
   titleSelector: "h1.post-title",
   tagsSelector: "span.post-category a",
@@ -113,7 +113,7 @@ export const indbeasiswaConfig: ScraperConfig = {
 export const beasiswakitaConfig: ScraperConfig = {
   sourceName: "beasiswakita",
   url: "https://www.beasiswakita.com/",
-  maxRequestsPerCrawl: 300,
+  maxRequestsPerCrawl: 100,
   // 1. Pola URL dibuat lebih spesifik
   // Ini hanya akan cocok dengan URL artikel beasiswa berdasarkan pola tahun/bulan.
   globs: ["https://www.beasiswakita.com/20*/*/*.html"],
