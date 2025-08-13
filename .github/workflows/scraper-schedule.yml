@@ -1,0 +1,52 @@
+# Nama workflow yang akan muncul di tab "Actions" di GitHub
+name: Scheduled Beasiswa Scraper
+
+on:
+  # 1. Menjalankan secara terjadwal (schedule)
+  # '0 0 */3 * *' artinya: jalankan pada menit ke-0, jam ke-0 (tengah malam UTC), setiap 3 hari.
+  schedule:
+    - cron: '0 0 */3 * *'
+
+  # 2. Memungkinkan untuk dijalankan secara manual dari UI GitHub
+  # Sangat berguna untuk testing!
+  workflow_dispatch:
+
+jobs:
+  scrape:
+    # Menggunakan OS Ubuntu versi terbaru yang disediakan GitHub
+    runs-on: ubuntu-latest
+
+    steps:
+      # Langkah 1: Checkout kode dari repository ke dalam runner
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Langkah 2: Setup environment Node.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20 # Gunakan versi Node yang sesuai dengan project-mu
+          cache: 'npm' # Meng-cache dependensi untuk mempercepat instalasi di masa depan
+
+      # Langkah 3: Install semua dependensi project
+      - name: Install dependencies
+        run: npm install
+
+      # Langkah 4: (KRUSIAL UNTUK PLAYWRIGHT) Install browser yang dibutuhkan
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+
+      # Langkah 5: Compile TypeScript menjadi JavaScript (jika kamu punya build step)
+      # Asumsi kamu punya skrip "build" di package.json: "tsc"
+      - name: Compile TypeScript
+        run: npm run build
+
+      # Langkah 6: Jalankan scraper
+      # Kita akan menjalankan file hasil kompilasi dari folder `dist`
+      - name: Run Beasiswa Scraper
+        run: node dist/main.js # Sesuaikan path jika berbeda
+        env:
+          # Mengambil secrets yang sudah kita simpan di GitHub
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+
