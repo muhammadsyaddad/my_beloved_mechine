@@ -1,0 +1,29 @@
+{
+  "name": "my-crawler",
+  "version": "0.0.1",
+  "type": "module",
+  "description": "This is an example of a Crawlee project.",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.53.0",
+    "crawlee": "^3.0.0",
+    "dotenv": "^17.2.1",
+    "playwright": "*"
+  },
+  "devDependencies": {
+    "@apify/tsconfig": "^0.1.0",
+    "@types/cheerio": "^0.22.35",
+    "@types/node": "^22.0.0",
+    "tsx": "^4.4.0",
+    "typescript": "~5.8.0"
+  },
+  "scripts": {
+    "start": "npm run start:dev",
+    "start:prod": "node dist/main.js",
+    "start:dev": "caffeinate node --max-old-space-size=4096 -r tsx src/main.ts",
+    "build": "tsc",
+    "test": "echo \"Error: oops, the actor has no tests yet, sad!\" && exit 1"
+  },
+  "author": "It's not you it's me",
+  "license": "ISC",
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
+}
