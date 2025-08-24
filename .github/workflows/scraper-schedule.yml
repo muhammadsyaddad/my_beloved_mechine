@@ -5,7 +5,7 @@ on:
   # 1. Menjalankan secara terjadwal (schedule)
   # '0 0 */3 * *' artinya: jalankan pada menit ke-0, jam ke-0 (tengah malam UTC), setiap 3 hari.
   schedule:
-    - cron: '0 0 */3 * *'
+    - cron: "0 0 */3 * *"
 
   # 2. Memungkinkan untuk dijalankan secara manual dari UI GitHub
   # Sangat berguna untuk testing!
@@ -26,7 +26,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20 # Gunakan versi Node yang sesuai dengan project-mu
-          cache: 'npm' # Meng-cache dependensi untuk mempercepat instalasi di masa depan
+          cache: "npm" # Meng-cache dependensi untuk mempercepat instalasi di masa depan
 
       # Langkah 3: Install semua dependensi project
       - name: Install dependencies
@@ -46,7 +46,7 @@ jobs:
       - name: Run Beasiswa Scraper
         run: node dist/main.js # Sesuaikan path jika berbeda
         env:
+          NODE_ENV: production
           # Mengambil secrets yang sudah kita simpan di GitHub
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-

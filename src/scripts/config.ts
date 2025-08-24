@@ -31,6 +31,20 @@ export const indbeasiswaConfig: ScraperConfig = {
       link_pendaftaran: null,
       deadline: null,
     };
+    const pendaftaranHeading = content.find(
+      "h3:contains('Cara Mendaftar'), h2:contains('Cara Mendaftar')",
+    );
+    if (pendaftaranHeading.length > 0) {
+      const firstLink = pendaftaranHeading
+        .nextAll("ol, ul")
+        .first()
+        .find("a")
+        .first()
+        .attr("href");
+      if (firstLink) {
+        info.link_pendaftaran = firstLink;
+      }
+    }
 
     const linkKeywords = [
       "info pendaftaran",

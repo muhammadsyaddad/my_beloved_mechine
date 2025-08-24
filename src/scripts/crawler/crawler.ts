@@ -1,11 +1,25 @@
 // Di file: src/scripts/crawler/crawler.ts
-
+import { promises as fs } from "fs";
+import path from "path";
 import { PlaywrightCrawler } from "crawlee";
 import type { CheerioAPI } from "cheerio";
 import { ScraperConfig } from "../config.js";
 import { BeasiswaInfo } from "../../lib/constant.js";
 import { extractOfficialLink } from "../Helper/helperCrawler.js";
 import { supabase } from "../../lib/supabaseClient.js";
+
+function sanitizeFilename(title: string): string {
+  // 1. Ganti spasi dan karakter non-alfanumerik dengan strip (-)
+  // 2. Hapus karakter strip berlebihan
+  // 3. Batasi panjangnya agar tidak terlalu panjang
+  const sanitized = title
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, "") // Hapus semua selain huruf, angka, spasi, strip
+    .replace(/\s+/g, "-") // Ganti spasi dengan strip
+    .replace(/-+/g, "-") // Ganti strip berurutan menjadi satu
+    .substring(0, 75); // Batasi panjangnya
+  return sanitized || "tanpa-judul"; // Fallback jika judul kosong
+}
 
 export function createBeasiswaCrawler(config: ScraperConfig) {
   return new PlaywrightCrawler({
@@ -24,9 +38,14 @@ export function createBeasiswaCrawler(config: ScraperConfig) {
           tags: $(config.tagsSelector)
             .map((_, el) => $(el).text().trim())
             .get(),
-          deskripsi: [
-            $("div[style*='text-align: justify']").first().text().trim(),
-          ],
+          deskripsi: $(config.contentSelector)
+            .find("p")
+            .first() // Ambil hanya paragraf pertama sebagai deskripsi utama
+            .text()
+            .replace("INDBeasiswa.com –", "")
+            .trim()
+            .split("\n"), // Memastikan hasilnya tetap array of string
+
           sumber: config.sourceName,
           link_pendaftaran: extractOfficialLink($ as CheerioAPI, request.url),
           deadline: null,
@@ -41,37 +60,62 @@ export function createBeasiswaCrawler(config: ScraperConfig) {
         // Cek jika data esensial ada sebelum menyimpan
         if (info.persyaratan.length > 0 || info.benefit.length > 0) {
           // --- BLOK PENYIMPANAN BARU KE SUPABASE ---
-          console.log(
-            `[${config.sourceName}] 💾 Menyiapkan data untuk ${info.judul.substring(0, 30)}...`,
-          );
-
-          // Kita gunakan 'upsert'. Ini akan INSERT jika data baru, atau UPDATE jika URL sudah ada.
-          // Ini sangat efisien untuk mencegah duplikat!
-          const { data: _, error } = await supabase
-            .from("beasiswa") // Nama tabel Anda
-            .upsert(
-              {
-                url: info.url,
-                judul: info.judul,
-                link_pendaftaran: info.link_pendaftaran,
-                deadline: info.deadline,
-                tags: info.tags,
-                deskripsi: info.deskripsi,
-                persyaratan: info.persyaratan,
-                benefit: info.benefit,
-                kampus: info.kampus,
-              },
-              { onConflict: "url" }, // Jika terjadi konflik pada kolom 'url', lakukan update.
+          if (process.env.NODE_ENV === "production") {
+            console.log(
+              `[${config.sourceName}] 💾 Menyiapkan data untuk ${info.judul.substring(0, 30)}...`,
             );
 
-          if (error) {
-            console.error(
-              `[${config.sourceName}] ❌ Gagal menyimpan ke Supabase: ${error.message}`,
-            );
+            // Kita gunakan 'upsert'. Ini akan INSERT jika data baru, atau UPDATE jika URL sudah ada.
+            // Ini sangat efisien untuk mencegah duplikat!
+            const { data: _, error } = await supabase
+              .from("beasiswa") // Nama tabel Anda
+              .upsert(
+                {
+                  url: info.url,
+                  judul: info.judul,
+                  link_pendaftaran: info.link_pendaftaran,
+                  deadline: info.deadline,
+                  tags: info.tags,
+                  deskripsi: info.deskripsi,
+                  persyaratan: info.persyaratan,
+                  benefit: info.benefit,
+                  kampus: info.kampus,
+                },
+                { onConflict: "url" }, // Jika terjadi konflik pada kolom 'url', lakukan update.
+              );
+
+            if (error) {
+              console.error(
+                `[${config.sourceName}] ❌ Gagal menyimpan ke Supabase: ${error.message}`,
+              );
+            } else {
+              console.log(
+                `[${config.sourceName}] ✔️ Data berhasil disimpan/diupdate di Supabase.`,
+              );
+            }
           } else {
             console.log(
-              `[${config.sourceName}] ✔️ Data berhasil disimpan/diupdate di Supabase.`,
+              `[DEV] [${config.sourceName}] Menyimpan data untuk JSON : ${info.judul.substring(0, 30)}...`,
             );
+            const fileName = `${sanitizeFilename(info.judul)}.JSON`;
+            const outputDir = path.resolve("./storage/beasiswa");
+            const outputFile = path.join(outputDir, fileName);
+
+            try {
+              await fs.mkdir(outputDir, { recursive: true });
+              await fs.writeFile(
+                outputFile,
+                JSON.stringify(info, null, 2),
+                "utf-8",
+              );
+              console.log(
+                `[DEV] [${config.sourceName}] ✔️ Data berhasil disimpan ke ${outputFile}`,
+              );
+            } catch (writeError: any) {
+              console.error(
+                `[DEV] [${config.sourceName}] ❌ Gagal menyimpan ke file JSON: ${writeError.message}`,
+              );
+            }
           }
         } else {
           console.log(
